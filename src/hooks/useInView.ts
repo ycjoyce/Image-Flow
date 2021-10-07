@@ -32,6 +32,11 @@ const useInView = (el: RefObject<any>, callback: () => void) => {
       const observer = getObserver();
       callbackMap.set(target, callback);
       observer.observe(target);
+
+      return () => {
+        observer.unobserve(target);
+        callbackMap.delete(target);
+      };
     },
     [callback, el]
   );

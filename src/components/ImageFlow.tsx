@@ -4,9 +4,7 @@ import ImageCard from "./ImageCard";
 
 interface Props {
   cardWidth: number;
-  total: number;
-  total_pages: number;
-  results: Photo[];
+  images: Photo[];
 }
 
 function ImageFlow(props: Props) {
@@ -16,20 +14,17 @@ function ImageFlow(props: Props) {
     history.push(`/photo/${id}`);
   };
 
-  const renderCards = (images: Photo[]) => {
-    return images.map((image, idx) => {
-      return (
-        <ImageCard
-          key={image.id}
-          {...image}
-          cardWidth={250}
-          onClick={onCardClick}
-        />
-      );
-    });
-  };
+  const renderCards = (images: Photo[]) =>
+    images.map(image => (
+      <ImageCard
+        key={image.id}
+        {...image}
+        cardWidth={250}
+        onClick={onCardClick}
+      />
+    ));
 
-  return <div>{renderCards(props.results)}</div>;
+  return <div>{renderCards(props.images)}</div>;
 }
 
 export default ImageFlow;
