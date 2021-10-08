@@ -5,7 +5,7 @@ import useQuery from "../hooks/useQuery";
 import useAtBottom from "../hooks/useAtBottom";
 import Search from "./Search";
 import ImageFlow from "./ImageFlow";
-import Mask from "./Mask";
+import LoadingMask from "./LoadingMask";
 
 function Homepage() {
   const history = useHistory();
@@ -32,11 +32,9 @@ function Homepage() {
     <div>
       <Search onSubmit={onSearchSubmit} />
       {images.length ? (
-        <Fragment>
-          <ImageFlow images={images} cardWidth={250} />
-        </Fragment>
+        <ImageFlow images={images} cardWidth={250} />
       ) : (
-        <Mask>Loading</Mask>
+        <LoadingMask />
       )}
     </div>
   );

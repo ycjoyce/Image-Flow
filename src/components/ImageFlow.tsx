@@ -14,7 +14,7 @@ function ImageFlow(props: Props) {
     history.push(`/photo/${id}`);
   };
 
-  const renderCards = (images: Photo[]) =>
+  const renderCards = (images: Photo[]): JSX.Element[] =>
     images.map(image => (
       <ImageCard
         key={image.id}
