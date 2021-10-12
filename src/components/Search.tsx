@@ -1,17 +1,28 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 
 interface Props {
+  defaultValue?: string;
   onSubmit: (term: string) => void;
 }
 
 function Search(props: Props) {
+  const { defaultValue, onSubmit } = props;
   const [term, setTerm] = useState("");
+
+  useEffect(
+    () => {
+      if (defaultValue !== undefined) {
+        setTerm(defaultValue);
+      }
+    },
+    [defaultValue]
+  );
 
   const onFormSubmit = (e: FormEvent) => {
     e.preventDefault();
     const searchTerm = term.trim();
     if (!searchTerm) return;
-    props.onSubmit(searchTerm);
+    onSubmit(searchTerm);
   };
 
   return (
