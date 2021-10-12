@@ -1,43 +1,83 @@
-import { useState, Fragment } from "react";
-import { useHistory } from "react-router-dom";
-import useImages from "../hooks/useImages";
-import useQuery from "../hooks/useQuery";
+import { useState, Fragment, useRef, useEffect } from "react";
+import { useHistory, useLocation } from "react-router-dom";
+import unsplashAPI from "../apis/unsplash";
 import useAtBottom from "../hooks/useAtBottom";
+import LoadingMask from "./LoadingMask";
 import Search from "./Search";
 import ImageFlow from "./ImageFlow";
-import LoadingMask from "./LoadingMask";
+import { Photo } from "../models";
 
-function Homepage() {
+const getImages = async (
+  query: string | null,
+  page: number,
+  per_page: number = 100,
+  default_query: string = "sky"
+): Promise<[Photo[], number]> => {
+  try {
+    const { data: { results, total_pages } } = await unsplashAPI.get(
+      "/search/photos",
+      {
+        params: {
+          query: query || default_query,
+          page,
+          per_page
+        }
+      }
+    );
+    return [results, total_pages];
+  } catch {
+    return [[], 0];
+  }
+};
+
+const Homepage = () => {
   const history = useHistory();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(1);
-  const [images, totalPages] = useImages(searchTerm, page);
-  const defaultTerm = "sky";
+  const [images, setImages] = useState([] as Photo[]);
+  const search = useLocation().search;
+  const q = new URLSearchParams(search).get("q");
+  const page = useRef(1);
+  const totalPages = useRef(0);
 
   const onSearchSubmit = (term: string) => {
-    setSearchTerm(term);
-    setPage(1);
-    history.push("?q=" + term);
+    history.push(`?q=${term}`);
   };
 
-  useQuery("q", param => {
-    setSearchTerm(param || defaultTerm);
-  });
+  useEffect(
+    () => {
+      document.documentElement.scrollTop = 0;
+      page.current = 1;
+      getImages(q, page.current).then(res => {
+        const [images, total_pages] = res;
+        setImages(images);
+        totalPages.current = total_pages;
+      });
+    },
+    [q]
+  );
 
   useAtBottom(() => {
-    setPage(prevPage => (prevPage + 1 < totalPages ? prevPage + 1 : prevPage));
+    if (page.current + 1 > totalPages.current) {
+      return;
+    }
+    page.current = page.current + 1;
+    getImages(q, page.current).then(res => {
+      const [images] = res;
+      setImages(prevImages => [...prevImages, ...images]);
+    });
   });
 
   return (
     <div>
-      <Search onSubmit={onSearchSubmit} />
-      {images.length ? (
-        <ImageFlow images={images} cardWidth={250} />
+      {images.length > 0 ? (
+        <Fragment>
+          <Search defaultValue={q || ""} onSubmit={onSearchSubmit} />
+          <ImageFlow images={images} cardWidth={250} />
+        </Fragment>
       ) : (
         <LoadingMask />
       )}
     </div>
   );
-}
+};
 
 export default Homepage;
