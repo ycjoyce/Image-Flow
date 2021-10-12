@@ -1,21 +1,30 @@
-import { Fragment } from "react";
-import { useParams } from "react-router-dom";
+import { Fragment, useEffect } from "react";
+import { useParams, useHistory } from "react-router-dom";
 import useImageDetail from "../hooks/useImageDetail";
 import { Photo, Tag } from "../models";
 import ImageRenderer from "./ImageRenderer";
 import LoadingMask from "./LoadingMask";
 
 const ImageDetail = () => {
+  const history = useHistory();
   const { id } = useParams<{ id: string }>();
-  const data = useImageDetail(id) as null | Photo;
+  const data = useImageDetail(id);
+
+  useEffect(
+    () => {
+      if (data === false) {
+        history.push("/");
+      }
+    },
+    [data, history]
+  );
 
   const renderTags = (tags: Tag[]): JSX.Element[] => {
     return tags.map(tag => <div key={tag.title}>{tag.title}</div>);
   };
 
   const renderContent = (data: Photo): JSX.Element => {
-    const { description, alt_description, tags_preview } = data;
-    let { width, height } = data;
+    const { description, alt_description, tags_preview, width, height } = data;
 
     return (
       <Fragment>
@@ -28,10 +37,12 @@ const ImageDetail = () => {
         >
           <ImageRenderer {...data} />
         </div>
-        <article>
-          {description && <p>{description}</p>}
-          {alt_description && <p>{alt_description}</p>}
-        </article>
+        {(description || alt_description) && (
+          <article>
+            {description && <p>{description}</p>}
+            {alt_description && <p>{alt_description}</p>}
+          </article>
+        )}
         {tags_preview && <div>{renderTags(tags_preview)}</div>}
       </Fragment>
     );

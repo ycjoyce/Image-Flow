@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
+import { Photo } from "../models";
 import unsplashAPI from "../apis/unsplash";
 
-const useImageDetail = (id: string) => {
+const useImageDetail = (id: string): Photo | false | undefined => {
   const history = useHistory();
-  const [detail, setDetail] = useState(null);
+  const [detail, setDetail] = useState<Photo | false>();
 
   useEffect(
     () => {
@@ -13,7 +14,7 @@ const useImageDetail = (id: string) => {
           const { data } = await unsplashAPI(`/photos/${id}`);
           setDetail(data);
         } catch (e) {
-          history.push("/");
+          setDetail(false);
         }
       };
       getImageDetail();
