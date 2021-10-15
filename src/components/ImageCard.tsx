@@ -3,11 +3,12 @@ import ImageRenderer from "./ImageRenderer";
 
 interface Props extends Photo {
   cardWidth: number;
+  position?: { left: number | "auto"; top: number | "auto" };
   onClick: (id: string) => void;
 }
 
 const ImageCard = (props: Props) => {
-  const { id, width, height, cardWidth, onClick } = props;
+  const { id, width, height, cardWidth, position, onClick } = props;
   const ratio = width / cardWidth;
 
   return (
@@ -16,7 +17,9 @@ const ImageCard = (props: Props) => {
         display: "inline-block",
         width: `${cardWidth}px`,
         height: `${height / ratio}px`,
-        position: "relative"
+        position: position ? "absolute" : "relative",
+        left: position ? `${position.left}px` : "auto",
+        top: position ? `${position.top}px` : "auto"
       }}
       onClick={() => onClick(id)}
     >

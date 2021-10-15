@@ -19,7 +19,7 @@ const handleIntersections = (entries: IntersectionObserverEntry[]) => {
 const getObserver = () => {
   if (observer === undefined) {
     observer = new IntersectionObserver(handleIntersections, {
-      threshold: 0.5
+      threshold: 0.8
     });
   }
   return observer;
