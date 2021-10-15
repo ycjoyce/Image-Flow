@@ -1,21 +1,32 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  forwardRef,
+  ForwardedRef
+} from "react";
 import { useHistory } from "react-router-dom";
 import { Photo } from "../models";
 import { debounce } from "../util";
 import ImageCard from "./ImageCard";
 
 interface Props {
-  cardWidth: number;
+  cardWidth?: number;
+  gap?: number;
   images: Photo[];
+  getHeight?: (height: number) => void;
 }
 
-function ImageFlow(props: Props) {
+const ImageFlow = forwardRef(function(
+  props: Props,
+  ref: ForwardedRef<HTMLDivElement>
+) {
   const history = useHistory();
-  const { cardWidth, images: propsImages } = props;
-  const gap: number = 10;
+  const { cardWidth = 250, images: propsImages, gap = 10 } = props;
   const [images, setImages] = useState<(Photo | undefined)[]>([]);
   const [itemAmountPerRow, setItemAmountPerRow] = useState(
-    Math.floor(document.documentElement.clientWidth / (cardWidth + gap))
+    Math.floor((document.documentElement.clientWidth + gap) / (cardWidth + gap))
   );
   const itemAmountPerRowChanged = useRef<boolean>(false);
   const columnHeight = useRef(
@@ -158,7 +169,9 @@ function ImageFlow(props: Props) {
 
       return () => {
         const newItemsPerRow = Math.floor(
-          document.documentElement.clientWidth / (cardWidth + gap)
+          Math.floor(
+            (document.documentElement.clientWidth + gap) / (cardWidth + gap)
+          )
         );
         if (newItemsPerRow !== itemsPerRow) {
           itemsPerRow = newItemsPerRow;
@@ -193,6 +206,7 @@ function ImageFlow(props: Props) {
 
   useEffect(
     () => {
+      console.log(itemAmountPerRow);
       if (!itemAmountPerRowChanged.current) {
         return;
       }
@@ -211,7 +225,28 @@ function ImageFlow(props: Props) {
     [images.length]
   );
 
-  return <div style={{ position: "relative" }}>{renderCards(images)}</div>;
-}
+  useEffect(
+    () => {
+      if (!props.getHeight) return;
+      props.getHeight(Math.max(...columnHeight.current));
+    },
+    [Math.max(...columnHeight.current)]
+  );
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: "relative",
+        margin: "0 auto",
+        width: `${cardWidth * itemAmountPerRow +
+          gap * (itemAmountPerRow - 1)}px`,
+        height: `${Math.max(...columnHeight.current)}px`
+      }}
+    >
+      {renderCards(images)}
+    </div>
+  );
+});
 
 export default ImageFlow;

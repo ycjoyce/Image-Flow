@@ -1,4 +1,4 @@
-import { useState, Fragment, useRef, useEffect } from "react";
+import { useState, Fragment, useRef, useEffect, createRef } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import unsplashAPI from "../apis/unsplash";
 import useAtBottom from "../hooks/useAtBottom";
@@ -32,49 +32,75 @@ const getImages = async (
 
 const Homepage = () => {
   const history = useHistory();
-  const [images, setImages] = useState([] as Photo[]);
+  const [images, setImages] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const search = useLocation().search;
   const q = new URLSearchParams(search).get("q");
   const page = useRef(1);
   const totalPages = useRef(0);
+  const imageFlowRef = createRef<HTMLDivElement>();
+  let imageFlowHeight = 0;
 
   const onSearchSubmit = (term: string) => {
     history.push(`?q=${term}`);
   };
 
-  useEffect(
-    () => {
-      document.documentElement.scrollTop = 0;
-      page.current = 1;
-      getImages(q, page.current).then(res => {
-        const [images, total_pages] = res;
-        setImages(images);
-        totalPages.current = total_pages;
-      });
-    },
-    [q]
-  );
-
-  useAtBottom(() => {
+  const loadEnoughImages = () => {
     if (page.current + 1 > totalPages.current) {
       return;
     }
     page.current = page.current + 1;
+    setLoading(true);
     getImages(q, page.current).then(res => {
       const [images] = res;
       setImages(prevImages => [...prevImages, ...images]);
+      setLoading(false);
     });
-  });
+  };
+
+  const checkHeightEnough = (height: number) => {
+    if (height === imageFlowHeight) {
+      return;
+    }
+    imageFlowHeight = height;
+    if (height < document.documentElement.clientHeight) {
+      loadEnoughImages();
+    }
+  };
+
+  useAtBottom(imageFlowRef, loadEnoughImages, 200);
+
+  useEffect(
+    () => {
+      document.documentElement.scrollTop = 0;
+      page.current = 1;
+      setLoading(true);
+      getImages(q, page.current).then(res => {
+        const [images, total_pages] = res;
+        setImages(images);
+        totalPages.current = total_pages;
+        setLoading(false);
+      });
+
+      return () => setImages([]);
+    },
+    [q]
+  );
 
   return (
     <div>
-      {images.length > 0 ? (
+      {loading && <LoadingMask />}
+      {images.length > 0 && (
         <Fragment>
           <Search defaultValue={q || ""} onSubmit={onSearchSubmit} />
-          <ImageFlow images={images} cardWidth={250} />
+          <ImageFlow
+            ref={imageFlowRef}
+            images={images}
+            cardWidth={150}
+            gap={10}
+            getHeight={checkHeightEnough}
+          />
         </Fragment>
-      ) : (
-        <LoadingMask />
       )}
     </div>
   );
