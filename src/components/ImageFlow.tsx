@@ -8,10 +8,10 @@ import {
 } from "react";
 import { useHistory } from "react-router-dom";
 import { Photo } from "../models";
-import { debounce } from "../util";
 import ImageCard from "./ImageCard";
 
 interface Props {
+  containerWidth?: number;
   cardWidth?: number;
   gap?: number;
   images: Photo[];
@@ -23,10 +23,15 @@ const ImageFlow = forwardRef(function(
   ref: ForwardedRef<HTMLDivElement>
 ) {
   const history = useHistory();
-  const { cardWidth = 250, images: propsImages, gap = 10 } = props;
+  const {
+    containerWidth = document.documentElement.clientWidth,
+    cardWidth = 250,
+    images: propsImages,
+    gap = 10
+  } = props;
   const [images, setImages] = useState<(Photo | undefined)[]>([]);
   const [itemAmountPerRow, setItemAmountPerRow] = useState(
-    Math.floor((document.documentElement.clientWidth + gap) / (cardWidth + gap))
+    Math.floor((containerWidth + gap) / (cardWidth + gap))
   );
   const itemAmountPerRowChanged = useRef<boolean>(false);
   const columnHeight = useRef(
@@ -161,30 +166,22 @@ const ImageFlow = forwardRef(function(
     [cardWidth, itemAmountPerRow, orderImages, recognizeImageArray]
   );
 
-  useEffect(() => {
-    const resizeHandler = () => {
-      let itemsPerRow = Math.floor(
-        document.documentElement.clientWidth / (cardWidth + gap)
-      );
+  const onResize = () => {
+    const newItemsPerRow = Math.floor(
+      Math.floor((containerWidth + gap) / (cardWidth + gap))
+    );
+    if (newItemsPerRow !== itemAmountPerRow) {
+      setItemAmountPerRow(newItemsPerRow);
+      itemAmountPerRowChanged.current = true;
+    }
+  };
 
-      return () => {
-        const newItemsPerRow = Math.floor(
-          Math.floor(
-            (document.documentElement.clientWidth + gap) / (cardWidth + gap)
-          )
-        );
-        if (newItemsPerRow !== itemsPerRow) {
-          itemsPerRow = newItemsPerRow;
-          setItemAmountPerRow(itemsPerRow);
-          itemAmountPerRowChanged.current = true;
-        }
-      };
-    };
-    const onResize = debounce(resizeHandler(), 500);
-    window.addEventListener("resize", onResize);
-
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
+  useEffect(
+    () => {
+      onResize();
+    },
+    [containerWidth]
+  );
 
   useEffect(
     () => {
@@ -242,7 +239,7 @@ const ImageFlow = forwardRef(function(
         height: `${Math.max(...columnHeight.current)}px`
       }}
     >
-      {renderCards(images)}
+      {containerWidth > cardWidth + gap && renderCards(images)}
     </div>
   );
 });

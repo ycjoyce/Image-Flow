@@ -6,6 +6,7 @@ import LoadingMask from "./LoadingMask";
 import Search from "./Search";
 import ImageFlow from "./ImageFlow";
 import { Photo } from "../models";
+import { debounce } from "../util";
 
 const getImages = async (
   query: string | null,
@@ -32,13 +33,15 @@ const getImages = async (
 
 const Homepage = () => {
   const history = useHistory();
+  const imageFlowRef = createRef<HTMLDivElement>();
+  const containerRef = createRef<HTMLDivElement>();
   const [images, setImages] = useState<Photo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [containerWidth, setContainerWidth] = useState(containerRef.current?.clientWidth);
   const search = useLocation().search;
   const q = new URLSearchParams(search).get("q");
   const page = useRef(1);
   const totalPages = useRef(0);
-  const imageFlowRef = createRef<HTMLDivElement>();
   let imageFlowHeight = 0;
 
   const onSearchSubmit = (term: string) => {
@@ -88,8 +91,19 @@ const Homepage = () => {
     [q]
   );
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const resizeHandler = (target: HTMLElement) => {
+      setContainerWidth(target.clientWidth);
+    };
+    const onResize = debounce(resizeHandler.bind(null, containerRef.current));
+    window.addEventListener("resize", onResize);
+
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   return (
-    <div>
+    <div ref={containerRef}>
       {loading && <LoadingMask />}
       {images.length > 0 && (
         <Fragment>
@@ -97,6 +111,7 @@ const Homepage = () => {
           <ImageFlow
             ref={imageFlowRef}
             images={images}
+            containerWidth={containerWidth}
             cardWidth={150}
             gap={10}
             getHeight={checkHeightEnough}
