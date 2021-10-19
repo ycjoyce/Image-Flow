@@ -4,8 +4,13 @@
   z-index: 5;
   padding: 1rem;
   background-color: map-get($theme-colors, white);
+  width: calc(100% - 2rem);
 
   > *:not(:last-child) {
     margin-right: 0.5rem;
   }
+}
+
+.search-bar .form-controller {
+  width: 10px;
 }

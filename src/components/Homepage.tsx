@@ -42,7 +42,7 @@ const Homepage = () => {
   const q = new URLSearchParams(search).get("q");
   const page = useRef(1);
   const totalPages = useRef(0);
-  let imageFlowHeight = 0;
+  let imageFlowHeight: number;
 
   const onSearchSubmit = (term: string) => {
     history.push(`?q=${term}`);
@@ -80,6 +80,7 @@ const Homepage = () => {
       document.documentElement.scrollTop = 0;
       page.current = 1;
       setLoading(true);
+      
       getImages(q, page.current).then(res => {
         const [images, total_pages] = res;
         setImages(images);
@@ -100,7 +101,7 @@ const Homepage = () => {
     window.addEventListener("resize", onResize);
 
     return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [containerRef]);
 
   return (
     <div ref={containerRef}>
@@ -112,7 +113,7 @@ const Homepage = () => {
             ref={imageFlowRef}
             images={images}
             containerWidth={containerWidth}
-            cardWidth={150}
+            cardWidth={200}
             gap={10}
             getHeight={checkHeightEnough}
           />

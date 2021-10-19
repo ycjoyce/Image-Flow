@@ -31,7 +31,7 @@ const ImageFlow = forwardRef(function(
   } = props;
   const [images, setImages] = useState<(Photo | undefined)[]>([]);
   const [itemAmountPerRow, setItemAmountPerRow] = useState(
-    Math.floor((containerWidth + gap) / (cardWidth + gap))
+    Math.floor((containerWidth + gap) / (cardWidth + gap)) || 1
   );
   const itemAmountPerRowChanged = useRef<boolean>(false);
   const columnHeight = useRef(
@@ -171,7 +171,7 @@ const ImageFlow = forwardRef(function(
       Math.floor((containerWidth + gap) / (cardWidth + gap))
     );
     if (newItemsPerRow !== itemAmountPerRow) {
-      setItemAmountPerRow(newItemsPerRow);
+      setItemAmountPerRow(newItemsPerRow || 1);
       itemAmountPerRowChanged.current = true;
     }
   };
@@ -239,7 +239,7 @@ const ImageFlow = forwardRef(function(
         height: `${Math.max(...columnHeight.current)}px`
       }}
     >
-      {containerWidth > cardWidth + gap && renderCards(images)}
+      {renderCards(images)}
     </div>
   );
 });
