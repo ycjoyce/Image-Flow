@@ -3,7 +3,7 @@ interface Props {
 }
 
 const Mask = (props: Props) => {
-  return <div>{props.children}</div>;
+  return <div className="mask">{props.children}</div>;
 };
 
 export default Mask;

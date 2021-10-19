@@ -1,5 +1,5 @@
 import { Fragment, useEffect } from "react";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useHistory, Link } from "react-router-dom";
 import useImageDetail from "../hooks/useImageDetail";
 import { Photo, Tag } from "../models";
 import ImageRenderer from "./ImageRenderer";
@@ -20,14 +20,31 @@ const ImageDetail = () => {
   );
 
   const renderTags = (tags: Tag[]): JSX.Element[] => {
-    return tags.map(tag => <div key={tag.title}>{tag.title}</div>);
+    return tags.map(tag => (
+      <Link key={tag.title} className="image-tag-item" to={`/?q=${tag.title}`}>
+        {tag.title}
+      </Link>
+    ));
   };
 
   const renderContent = (data: Photo): JSX.Element => {
     const { description, alt_description, tags_preview, width, height } = data;
 
     return (
-      <Fragment>
+      <main className="image-detail">
+        {(description || alt_description) && (
+          <article className="image-desc-list">
+            {description && (
+              <p className="image-desc-item main">{description}</p>
+            )}
+            {alt_description && (
+              <p className="image-desc-item sub">{alt_description}</p>
+            )}
+          </article>
+        )}
+        {tags_preview && (
+          <div className="image-tag-list">{renderTags(tags_preview)}</div>
+        )}
         <div
           style={{
             width: "100%",
@@ -37,14 +54,7 @@ const ImageDetail = () => {
         >
           <ImageRenderer {...data} />
         </div>
-        {(description || alt_description) && (
-          <article>
-            {description && <p>{description}</p>}
-            {alt_description && <p>{alt_description}</p>}
-          </article>
-        )}
-        {tags_preview && <div>{renderTags(tags_preview)}</div>}
-      </Fragment>
+      </main>
     );
   };
 

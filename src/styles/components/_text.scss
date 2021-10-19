@@ -1,0 +1,13 @@
+.text {
+  @each $key, $val in $theme-colors {
+    &-#{$key} {
+      color: $val;
+    }
+  }
+}
+
+.letter-spacing {
+  &-lg {
+    letter-spacing: 0.8rem;
+  }
+}

@@ -34,15 +34,10 @@ const ImageRenderer = (props: Props) => {
         position: "absolute"
       }}
     >
-      <div>
+      <div className="image-renderer">
         <div
+          className="image-placeholder"
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 2,
             opacity: loaded ? 0 : 1
           }}
         >
@@ -52,9 +47,7 @@ const ImageRenderer = (props: Props) => {
           <img
             src={imageURL[thumb ? "thumb" : "regular"]}
             alt={description}
-            width="100%"
-            height="100%"
-            style={{ position: "absolute", top: 0, left: 0 }}
+            className="image"
             onLoad={() => setLoaded(true)}
           />
         )}

@@ -206,7 +206,6 @@ const ImageFlow = forwardRef(function(
 
   useEffect(
     () => {
-      console.log(itemAmountPerRow);
       if (!itemAmountPerRowChanged.current) {
         return;
       }
@@ -236,9 +235,8 @@ const ImageFlow = forwardRef(function(
   return (
     <div
       ref={ref}
+      className="image-flow"
       style={{
-        position: "relative",
-        margin: "0 auto",
         width: `${cardWidth * itemAmountPerRow +
           gap * (itemAmountPerRow - 1)}px`,
         height: `${Math.max(...columnHeight.current)}px`

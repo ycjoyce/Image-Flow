@@ -1,0 +1,12 @@
+.btn {
+  cursor: pointer;
+  padding: 0.8rem;
+  border-radius: 0.3rem;
+  border: 0;
+
+  @each $key, $val in $theme-colors {
+    &-#{$key} {
+      background-color: $val;
+    }
+  }
+}

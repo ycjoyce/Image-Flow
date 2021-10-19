@@ -26,10 +26,15 @@ function Search(props: Props) {
   };
 
   return (
-    <form onSubmit={onFormSubmit}>
-      <input type="text" value={term} onChange={e => setTerm(e.target.value)} />
-      <button>
-        <i className="fas fa-search" />
+    <form className="search-bar d-flex" onSubmit={onFormSubmit}>
+      <input
+        type="text"
+        value={term}
+        className="form-controller flex-grow-1"
+        onChange={e => setTerm(e.target.value)}
+      />
+      <button className="btn btn-primary flex-shrink-0">
+        <i className="fas fa-search text-white" />
       </button>
     </form>
   );

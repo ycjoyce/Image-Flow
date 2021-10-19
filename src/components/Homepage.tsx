@@ -10,7 +10,7 @@ import { Photo } from "../models";
 const getImages = async (
   query: string | null,
   page: number,
-  per_page: number = 100,
+  per_page: number = 300,
   default_query: string = "sky"
 ): Promise<[Photo[], number]> => {
   try {
@@ -65,7 +65,9 @@ const Homepage = () => {
     imageFlowHeight = height;
     if (height < document.documentElement.clientHeight) {
       loadEnoughImages();
+      return;
     }
+    setLoading(false);
   };
 
   useAtBottom(imageFlowRef, loadEnoughImages, 200);
@@ -79,7 +81,6 @@ const Homepage = () => {
         const [images, total_pages] = res;
         setImages(images);
         totalPages.current = total_pages;
-        setLoading(false);
       });
 
       return () => setImages([]);

@@ -1,0 +1,11 @@
+.search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 1rem;
+  background-color: map-get($theme-colors, white);
+
+  > *:not(:last-child) {
+    margin-right: 0.5rem;
+  }
+}

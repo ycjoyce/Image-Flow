@@ -13,8 +13,8 @@ const ImageCard = (props: Props) => {
 
   return (
     <div
+      className="image-card"
       style={{
-        display: "inline-block",
         width: `${cardWidth}px`,
         height: `${height / ratio}px`,
         position: position ? "absolute" : "relative",

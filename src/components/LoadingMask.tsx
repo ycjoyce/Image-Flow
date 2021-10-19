@@ -1,7 +1,11 @@
 import Mask from "./Mask";
 
 const LoadingMask = () => {
-  return <Mask>Loading</Mask>;
+  return (
+    <Mask>
+      <p className="text-white letter-spacing-lg">LOADING</p>
+    </Mask>
+  );
 };
 
 export default LoadingMask;
