@@ -7,13 +7,18 @@ import Search from "./Search";
 import ImageFlow from "./ImageFlow";
 import { Photo } from "../models";
 import { debounce } from "../util";
+import Mask from "./Mask";
+
+interface Props {
+  alertMsg?: string;
+}
 
 const getImages = async (
   query: string | null,
   page: number,
-  per_page: number = 300,
+  per_page: number = 30,
   default_query: string = "sky"
-): Promise<[Photo[], number]> => {
+): Promise<[Photo[], number] | false> => {
   try {
     const { data: { results, total_pages } } = await unsplashAPI.get(
       "/search/photos",
@@ -27,21 +32,23 @@ const getImages = async (
     );
     return [results, total_pages];
   } catch {
-    return [[], 0];
+    return false;
   }
 };
 
-const Homepage = () => {
+const Homepage = (props: Props) => {
   const history = useHistory();
   const imageFlowRef = createRef<HTMLDivElement>();
   const containerRef = createRef<HTMLDivElement>();
   const [images, setImages] = useState<Photo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [alert, setAlert] = useState<string>("");
   const [containerWidth, setContainerWidth] = useState(containerRef.current?.clientWidth);
   const search = useLocation().search;
   const q = new URLSearchParams(search).get("q");
   const page = useRef(1);
   const totalPages = useRef(0);
+  const { alertMsg = "超過限制請求次數(50次/小時)，請下個小時再試" } = props;
   let imageFlowHeight: number;
 
   const onSearchSubmit = (term: string) => {
@@ -50,11 +57,18 @@ const Homepage = () => {
 
   const loadEnoughImages = () => {
     if (page.current + 1 > totalPages.current) {
+      setLoading(false);
       return;
     }
     page.current = page.current + 1;
-    setLoading(true);
+    !loading && setLoading(true);
     getImages(q, page.current).then(res => {
+      if (res === false) {
+        setLoading(false);
+        setAlert(alertMsg);
+        return;
+      }
+      setAlert("");
       const [images] = res;
       setImages(prevImages => [...prevImages, ...images]);
       setLoading(false);
@@ -82,12 +96,20 @@ const Homepage = () => {
       setLoading(true);
       
       getImages(q, page.current).then(res => {
+        if (res === false) {
+          setLoading(false);
+          setAlert(alertMsg);
+          return;
+        }
         const [images, total_pages] = res;
         setImages(images);
         totalPages.current = total_pages;
       });
 
-      return () => setImages([]);
+      return () => {
+        setAlert("");
+        setImages([]);
+      };
     },
     [q]
   );
@@ -106,6 +128,11 @@ const Homepage = () => {
   return (
     <div ref={containerRef}>
       {loading && <LoadingMask />}
+      {alert && (
+        <Mask>
+          <p className="mask-text text-white letter-spacing-lg">{alert}</p>
+        </Mask>
+      )}
       {images.length > 0 && (
         <Fragment>
           <Search defaultValue={q || ""} onSubmit={onSearchSubmit} />
@@ -113,7 +140,6 @@ const Homepage = () => {
             ref={imageFlowRef}
             images={images}
             containerWidth={containerWidth}
-            cardWidth={200}
             gap={10}
             getHeight={checkHeightEnough}
           />

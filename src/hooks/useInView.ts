@@ -11,7 +11,7 @@ const handleIntersections = (entries: IntersectionObserverEntry[]) => {
     if (isIntersecting || intersectionRatio > 0) {
       observer.unobserve(target);
       callbackMap.delete(target);
-      cb();
+      cb(isIntersecting, intersectionRatio);
     }
   });
 };
@@ -25,18 +25,25 @@ const getObserver = () => {
   return observer;
 };
 
-const useInView = (el: RefObject<any>, callback: () => void) => {
+const useInView = (
+  el: RefObject<any>,
+  callback: (isIntersecting?: boolean, intersectionRatio?: number) => void
+) => {
   useEffect(
     () => {
-      const { current: target } = el;
-      const observer = getObserver();
-      callbackMap.set(target, callback);
-      observer.observe(target);
+      try {
+        const { current: target } = el;
+        const observer = getObserver();
+        callbackMap.set(target, callback);
+        observer.observe(target);
 
-      return () => {
-        observer.unobserve(target);
-        callbackMap.delete(target);
-      };
+        return () => {
+          observer.unobserve(target);
+          callbackMap.delete(target);
+        };
+      } catch (e) {
+        console.error(e);
+      }
     },
     [callback, el]
   );

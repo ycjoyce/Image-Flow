@@ -13,10 +13,6 @@ const ImageRenderer = (props: Props) => {
   const [loaded, setLoaded] = useState(false);
   const ref = createRef<HTMLDivElement>();
 
-  useInView(ref, () => {
-    setInView(true);
-  });
-
   const renderPlaceholder = (blur_hash: string | null): JSX.Element => {
     return blur_hash ? (
       <Blurhash hash={blur_hash} width="100%" height="100%" />
@@ -24,6 +20,10 @@ const ImageRenderer = (props: Props) => {
       <div style={{ background: "#eee", width: "100%", height: "100%" }} />
     );
   };
+
+  useInView(ref, () => {
+    setInView(true);
+  });
 
   return (
     <div

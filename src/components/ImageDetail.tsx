@@ -1,23 +1,21 @@
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
 import useImageDetail from "../hooks/useImageDetail";
 import { Photo, Tag } from "../models";
 import ImageRenderer from "./ImageRenderer";
 import LoadingMask from "./LoadingMask";
+import Mask from "./Mask";
 
-const ImageDetail = () => {
+interface Props {
+  alertMsg?: string;
+}
+
+const ImageDetail = (props: Props) => {
   const history = useHistory();
   const { id } = useParams<{ id: string }>();
-  const data = useImageDetail(id);
-
-  useEffect(
-    () => {
-      if (data === false) {
-        history.push("/");
-      }
-    },
-    [data, history]
-  );
+  const { status, data } = useImageDetail(id);
+  const [alert, setAlert] = useState<string>("");
+  const { alertMsg = "超過限制請求次數(50次/小時)，將導回首頁" } = props;
 
   const renderTags = (tags: Tag[]): JSX.Element[] => {
     return tags.map(tag => (
@@ -33,18 +31,19 @@ const ImageDetail = () => {
     return (
       <main className="image-detail">
         {(description || alt_description) && (
-          <article className="image-desc-list">
+          <div className="image-desc-list">
             {description && (
               <p className="image-desc-item main">{description}</p>
             )}
             {alt_description && (
               <p className="image-desc-item sub">{alt_description}</p>
             )}
-          </article>
+          </div>
         )}
         {tags_preview && (
           <div className="image-tag-list">{renderTags(tags_preview)}</div>
         )}
+
         <div
           style={{
             width: "100%",
@@ -58,9 +57,32 @@ const ImageDetail = () => {
     );
   };
 
+  useEffect(
+    () => {
+      let timer: NodeJS.Timer;
+      if (status !== "success" && status !== "pending") {
+        setAlert(alertMsg);
+        timer = setTimeout(() => {
+          setAlert("");
+          history.push("/");
+        }, 1500);
+      }
+      return () => clearTimeout(timer);
+    },
+    [data, status, history, alertMsg]
+  );
+
   return (
     <Fragment>
-      {data ? <Fragment>{renderContent(data)}</Fragment> : <LoadingMask />}
+      {data ? (
+        <Fragment>{renderContent(data)}</Fragment>
+      ) : alert ? (
+        <Mask>
+          <p className="mask-text text-white letter-spacing-lg">{alert}</p>
+        </Mask>
+      ) : (
+        <LoadingMask />
+      )}
     </Fragment>
   );
 };

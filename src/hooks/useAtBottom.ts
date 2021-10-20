@@ -7,23 +7,33 @@ const useAtBottom = (
   distance: number = 100,
 ) => {
   const handler = useCallback(() => {
-    const lowEnough = () => {
+    let lastScrollTop: number;
+
+    return () => {
       const pageHeight = Math.max(
         document.body.scrollHeight,
         document.body.offsetHeight
       );
       const viewportHeight = document.documentElement.clientHeight;
       const scrollTop = document.documentElement.scrollTop;
-      return pageHeight - viewportHeight - scrollTop < distance;
-    }
-    if (lowEnough() && ref?.current) {
-      callback();
-    }
+
+      if (lastScrollTop === undefined) {
+        lastScrollTop = scrollTop;
+      }
+      if (scrollTop < lastScrollTop || scrollTop - lastScrollTop < 50) {
+        return;
+      }
+      lastScrollTop = scrollTop;
+
+      if (pageHeight - viewportHeight - scrollTop < distance && ref?.current) {
+        callback();
+      }
+    };
   },[callback, distance, ref]);
 
   useEffect(
     () => {
-      const onEvent = debounce(handler, 800);
+      const onEvent = debounce(handler(), 500);
       window.addEventListener("scroll", onEvent);
       window.addEventListener("resize", onEvent);
 

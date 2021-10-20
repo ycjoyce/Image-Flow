@@ -8,7 +8,8 @@ interface Props extends Photo {
 }
 
 const ImageCard = (props: Props) => {
-  const { id, width, height, cardWidth, position, onClick } = props;
+  const { id, width, height, position, onClick } = props;
+  const cardWidth = props.cardWidth < 0 ? 200 : props.cardWidth;
   const ratio = width / cardWidth;
 
   return (

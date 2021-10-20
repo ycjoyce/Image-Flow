@@ -18,17 +18,37 @@ interface Props {
   getHeight?: (height: number) => void;
 }
 
+const getSizeProps = (
+  defaultValue: { [key: string]: number },
+  propsValue: { [key: string]: number | undefined }
+): { [key: string]: number } => {
+  const result = JSON.parse(JSON.stringify(propsValue));
+  for (let key in propsValue) {
+    if (!propsValue.hasOwnProperty(key)) continue;
+    result[key] =
+      !propsValue[key] || propsValue[key]! < 0
+        ? defaultValue[key]
+        : propsValue[key];
+  }
+  return result;
+};
+
 const ImageFlow = forwardRef(function(
   props: Props,
   ref: ForwardedRef<HTMLDivElement>
 ) {
   const history = useHistory();
-  const {
-    containerWidth = document.documentElement.clientWidth,
-    cardWidth = 250,
-    images: propsImages,
-    gap = 10
-  } = props;
+  const { images: propsImages } = props;
+  const defaultValue = {
+    containerWidth: document.documentElement.clientWidth,
+    cardWidth: 200,
+    gap: 10
+  };
+  const { containerWidth, cardWidth, gap } = getSizeProps(defaultValue, {
+    containerWidth: props.containerWidth,
+    cardWidth: props.cardWidth,
+    gap: props.gap
+  });
   const [images, setImages] = useState<(Photo | undefined)[]>([]);
   const [itemAmountPerRow, setItemAmountPerRow] = useState(
     Math.floor((containerWidth + gap) / (cardWidth + gap)) || 1
@@ -73,6 +93,7 @@ const ImageFlow = forwardRef(function(
   ): (JSX.Element | null)[] => {
     return images.map((image, idx, arr) => {
       if (!image) return null;
+
       return (
         <ImageCard
           key={image.id}
@@ -176,12 +197,7 @@ const ImageFlow = forwardRef(function(
     }
   };
 
-  useEffect(
-    () => {
-      onResize();
-    },
-    [containerWidth]
-  );
+  useEffect(onResize, [containerWidth]);
 
   useEffect(
     () => {
