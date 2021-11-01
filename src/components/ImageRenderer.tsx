@@ -1,4 +1,4 @@
-import { useState, createRef } from "react";
+import { useState, createRef, memo } from "react";
 import { Blurhash } from "react-blurhash";
 import { Photo } from "../models";
 import useInView from "../hooks/useInView";
@@ -56,4 +56,4 @@ const ImageRenderer = (props: Props) => {
   );
 };
 
-export default ImageRenderer;
+export default memo(ImageRenderer);

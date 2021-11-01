@@ -1,11 +1,11 @@
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, memo } from "react";
 
 interface Props {
   defaultValue?: string;
   onSubmit: (term: string) => void;
 }
 
-function Search(props: Props) {
+const Search = (props: Props) => {
   const { defaultValue, onSubmit } = props;
   const [term, setTerm] = useState("");
 
@@ -30,14 +30,15 @@ function Search(props: Props) {
       <input
         type="text"
         value={term}
+        aria-label="Enter keywords"
         className="form-controller flex-grow-1"
         onChange={e => setTerm(e.target.value)}
       />
-      <button className="btn btn-primary flex-shrink-0">
+      <button aria-label="Search" className="btn btn-primary flex-shrink-0">
         <i className="fas fa-search text-white" />
       </button>
     </form>
   );
-}
+};
 
-export default Search;
+export default memo(Search);

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Mask from "./Mask";
 
 const LoadingMask = () => {
@@ -8,4 +9,4 @@ const LoadingMask = () => {
   );
 };
 
-export default LoadingMask;
+export default memo(LoadingMask);
