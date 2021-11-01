@@ -1,14 +1,16 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState, lazy } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
 import useImageDetail from "../hooks/useImageDetail";
+import { getRootPath } from "../util";
 import { Photo, Tag } from "../models";
-import ImageRenderer from "./ImageRenderer";
-import LoadingMask from "./LoadingMask";
-import Mask from "./Mask";
 
 interface Props {
   alertMsg?: string;
 }
+
+const ImageRenderer = lazy(() => import("./ImageRenderer"));
+const LoadingMask = lazy(() => import("./LoadingMask"));
+const Mask = lazy(() => import("./Mask"));
 
 const ImageDetail = (props: Props) => {
   const history = useHistory();
@@ -19,7 +21,11 @@ const ImageDetail = (props: Props) => {
 
   const renderTags = (tags: Tag[]): JSX.Element[] => {
     return tags.map(tag => (
-      <Link key={tag.title} className="image-tag-item" to={`/?q=${tag.title}`}>
+      <Link
+        key={tag.title}
+        className="image-tag-item"
+        to={`${getRootPath(process.env.NODE_ENV)}?q=${tag.title}`}
+      >
         {tag.title}
       </Link>
     ));

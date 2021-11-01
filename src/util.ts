@@ -17,3 +17,7 @@ export const debounce = (fn: () => void, delay: number = 500) => {
     }
   };
 };
+
+export const getRootPath = (env: string): string => {
+  return env === "production" ? `${process.env.PUBLIC_URL}/` : "/";
+};

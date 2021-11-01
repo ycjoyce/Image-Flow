@@ -6,7 +6,6 @@ import {
   forwardRef,
   ForwardedRef
 } from "react";
-import { useHistory } from "react-router-dom";
 import { Photo } from "../models";
 import ImageCard from "./ImageCard";
 
@@ -16,6 +15,7 @@ interface Props {
   gap?: number;
   images: Photo[];
   getHeight?: (height: number) => void;
+  onCardClick?: (id: string) => void;
 }
 
 const getSizeProps = (
@@ -37,7 +37,6 @@ const ImageFlow = forwardRef(function(
   props: Props,
   ref: ForwardedRef<HTMLDivElement>
 ) {
-  const history = useHistory();
   const { images: propsImages } = props;
   const defaultValue = {
     containerWidth: document.documentElement.clientWidth,
@@ -62,10 +61,6 @@ const ImageFlow = forwardRef(function(
     new: Array.from({ length: itemAmountPerRow }, (): Photo[] => [])
   });
   const imagesBeforeResize = useRef<(Photo | undefined)[]>([]);
-
-  const onCardClick = (id: string) => {
-    history.push(`/photo/${id}`);
-  };
 
   const getCardPosition = (
     idx: number,
@@ -100,7 +95,7 @@ const ImageFlow = forwardRef(function(
           {...image}
           cardWidth={cardWidth}
           position={getCardPosition(idx, arr)}
-          onClick={onCardClick}
+          onClick={props.onCardClick}
         />
       );
     });

@@ -1,10 +1,11 @@
+import { memo } from "react";
 import { Photo } from "../models";
 import ImageRenderer from "./ImageRenderer";
 
 interface Props extends Photo {
   cardWidth: number;
   position?: { left: number | "auto"; top: number | "auto" };
-  onClick: (id: string) => void;
+  onClick?: (id: string) => void;
 }
 
 const ImageCard = (props: Props) => {
@@ -22,11 +23,11 @@ const ImageCard = (props: Props) => {
         left: position ? `${position.left}px` : "auto",
         top: position ? `${position.top}px` : "auto"
       }}
-      onClick={() => onClick(id)}
+      onClick={() => onClick && onClick(id)}
     >
       <ImageRenderer {...props} thumb={true} />
     </div>
   );
 };
 
-export default ImageCard;
+export default memo(ImageCard);

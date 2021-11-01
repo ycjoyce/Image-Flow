@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
+import { getRootPath } from "./util";
 import LoadingMask from "./components/LoadingMask";
 import "@fortawesome/fontawesome-free/css/all.css";
 import "./styles/all.scss";
@@ -11,19 +12,19 @@ function App() {
   return (
     <BrowserRouter>
       <Switch>
-        <Route path="/" exact>
+        <Route path={getRootPath(process.env.NODE_ENV)} exact>
           <Suspense fallback={<LoadingMask />}>
             <Homepage />
           </Suspense>
         </Route>
 
-        <Route path="/photo/:id" exact>
+        <Route path={`${getRootPath(process.env.NODE_ENV)}photo/:id`}>
           <Suspense fallback={<LoadingMask />}>
             <ImageDetail />
           </Suspense>
         </Route>
 
-        <Redirect to="/" />
+        <Redirect to={getRootPath(process.env.NODE_ENV)} />
       </Switch>
     </BrowserRouter>
   );

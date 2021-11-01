@@ -1,17 +1,18 @@
-import { useState, Fragment, useRef, useEffect, createRef } from "react";
+import { useState, Fragment, useRef, useEffect, createRef, lazy } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import unsplashAPI from "../apis/unsplash";
 import useAtBottom from "../hooks/useAtBottom";
-import LoadingMask from "./LoadingMask";
-import Search from "./Search";
-import ImageFlow from "./ImageFlow";
 import { Photo } from "../models";
-import { debounce } from "../util";
-import Mask from "./Mask";
+import { getRootPath, debounce } from "../util";
 
 interface Props {
   alertMsg?: string;
 }
+
+const Mask = lazy(() => import("./Mask"));
+const LoadingMask = lazy(() => import("./LoadingMask"));
+const Search = lazy(() => import("./Search"));
+const ImageFlow = lazy(() => import("./ImageFlow"));
 
 const getImages = async (
   query: string | null,
@@ -68,8 +69,8 @@ const Homepage = (props: Props) => {
         setAlert(alertMsg);
         return;
       }
-      setAlert("");
       const [images] = res;
+      setAlert("");
       setImages(prevImages => [...prevImages, ...images]);
       setLoading(false);
     });
@@ -85,6 +86,10 @@ const Homepage = (props: Props) => {
       return;
     }
     setLoading(false);
+  };
+
+  const onCardClick = (id: string) => {
+    history.push(`${getRootPath(process.env.NODE_ENV)}photo/${id}`);
   };
 
   useAtBottom(imageFlowRef, loadEnoughImages, 200);
@@ -142,6 +147,7 @@ const Homepage = (props: Props) => {
             containerWidth={containerWidth}
             gap={10}
             getHeight={checkHeightEnough}
+            onCardClick={onCardClick}
           />
         </Fragment>
       )}
