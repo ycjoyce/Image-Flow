@@ -1,27 +1,92 @@
-import { useState, Fragment, useRef, useEffect, createRef, lazy } from "react";
+import { useReducer, useEffect, useRef, Fragment } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import unsplashAPI from "../apis/unsplash";
+import useNodeWidth from "../hooks/useNodeWidth";
+import usePrevious from "../hooks/usePrevious";
 import useAtBottom from "../hooks/useAtBottom";
 import { Photo } from "../models";
-import { getRootPath, debounce } from "../util";
+import unsplashAPI from "../apis/unsplash";
+import { getRootPath } from "../util";
+import Mask from "./Mask";
+import LoadingMask from "./LoadingMask";
+import Search from "./Search";
+import ImageFlow from "./ImageFlow";
 
-interface Props {
+type Props = {
   alertMsg?: string;
+};
+
+type State = {
+  page: number;
+  total_pages: number;
+  loading: boolean;
+  alert: string;
+  images: Photo[];
+};
+
+enum ImagesAction {
+  INIT_IMAGES,
+  LOAD_MORE_IMAGES,
+  SUCCESS_IMAGES,
+  FAILURE_IMAGES,
+  IMAGES_LOADED
 }
 
-const Mask = lazy(() => import("./Mask"));
-const LoadingMask = lazy(() => import("./LoadingMask"));
-const Search = lazy(() => import("./Search"));
-const ImageFlow = lazy(() => import("./ImageFlow"));
+type Action =
+  | { type: ImagesAction.INIT_IMAGES }
+  | {
+      type: ImagesAction.LOAD_MORE_IMAGES;
+      payload: { page: number };
+    }
+  | {
+      type: ImagesAction.SUCCESS_IMAGES;
+      payload: { images: Photo[]; total_pages?: number; page: number };
+    }
+  | { type: ImagesAction.FAILURE_IMAGES; payload: { alert: string } }
+  | { type: ImagesAction.IMAGES_LOADED };
+
+const initialState: State = {
+  page: 1,
+  total_pages: 0,
+  loading: true,
+  alert: "",
+  images: []
+};
+
+const imagesReducer = (state: State, action: Action) => {
+  switch (action.type) {
+    case ImagesAction.INIT_IMAGES:
+      return { ...state, page: 1, loading: true, alert: "", images: [] };
+    case ImagesAction.LOAD_MORE_IMAGES:
+      return { ...state, loading: true, page: action.payload.page };
+    case ImagesAction.SUCCESS_IMAGES:
+      return {
+        ...state,
+        alert: "",
+        loading: false,
+        page: action.payload.page,
+        total_pages: action.payload.total_pages || state.total_pages,
+        images:
+          action.payload.page === 1
+            ? [...action.payload.images]
+            : [...state.images, ...action.payload.images]
+      };
+    case ImagesAction.FAILURE_IMAGES:
+      return { ...state, loading: false, alert: action.payload.alert };
+    case ImagesAction.IMAGES_LOADED:
+      return { ...state, loading: false };
+    default:
+      throw new Error("imagesReducer 沒有此種 type");
+  }
+};
 
 const getImages = async (
   query: string | null,
   page: number,
   per_page: number = 30,
   default_query: string = "sky"
-): Promise<[Photo[], number] | false> => {
+): Promise<{ images: Photo[]; total_pages: number }> => {
   try {
-    const { data: { results, total_pages } } = await unsplashAPI.get(
+    const { data: { results: images, total_pages } } = await unsplashAPI.get(
       "/search/photos",
       {
         params: {
@@ -31,108 +96,100 @@ const getImages = async (
         }
       }
     );
-    return [results, total_pages];
+    return Promise.resolve({ images, total_pages });
   } catch {
-    return false;
+    return Promise.reject();
   }
 };
 
 const Homepage = (props: Props) => {
-  const history = useHistory();
-  const imageFlowRef = createRef<HTMLDivElement>();
-  const containerRef = createRef<HTMLDivElement>();
-  const [images, setImages] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [alert, setAlert] = useState<string>("");
-  const [containerWidth, setContainerWidth] = useState(containerRef.current?.clientWidth);
-  const search = useLocation().search;
-  const q = new URLSearchParams(search).get("q");
-  const page = useRef(1);
-  const totalPages = useRef(0);
   const { alertMsg = "超過限制請求次數(50次/小時)，請下個小時再試" } = props;
-  let imageFlowHeight: number;
+  const history = useHistory();
+  const [containerWidth, containerRef] = useNodeWidth();
+  const imageFlowRef = useRef(null);
+  const search = useLocation().search;
+  const query = new URLSearchParams(search).get("q");
+  const prevQuery = usePrevious(query);
+
+  const [{ page, total_pages, loading, alert, images }, dispatch] = useReducer(
+    imagesReducer,
+    initialState
+  );
 
   const onSearchSubmit = (term: string) => {
     history.push(`?q=${term}`);
   };
 
   const loadEnoughImages = () => {
-    if (page.current + 1 > totalPages.current) {
-      setLoading(false);
+    if (page + 1 > total_pages) {
+      dispatch({ type: ImagesAction.IMAGES_LOADED });
       return;
     }
-    page.current = page.current + 1;
-    !loading && setLoading(true);
-    getImages(q, page.current).then(res => {
-      if (res === false) {
-        setLoading(false);
-        setAlert(alertMsg);
-        return;
-      }
-      const [images] = res;
-      setAlert("");
-      setImages(prevImages => [...prevImages, ...images]);
-      setLoading(false);
+
+    dispatch({
+      type: ImagesAction.LOAD_MORE_IMAGES,
+      payload: { page: page + 1 }
     });
   };
 
+  const prevImageFlowHeight = useRef(0);
+
   const checkHeightEnough = (height: number) => {
-    if (height === imageFlowHeight) {
+    if (height === prevImageFlowHeight.current) {
       return;
     }
-    imageFlowHeight = height;
+    prevImageFlowHeight.current = height;
+
     if (height < document.documentElement.clientHeight) {
       loadEnoughImages();
       return;
     }
-    setLoading(false);
+
+    dispatch({ type: ImagesAction.IMAGES_LOADED });
   };
 
   const onCardClick = (id: string) => {
     history.push(`${getRootPath(process.env.NODE_ENV)}photo/${id}`);
   };
 
-  useAtBottom(imageFlowRef, loadEnoughImages, 200);
+  useEffect(
+    () => {
+      if (query !== prevQuery) {
+        document.documentElement.scrollTop = 0;
+        dispatch({ type: ImagesAction.INIT_IMAGES });
+      }
+    },
+    [query, prevQuery]
+  );
 
   useEffect(
     () => {
-      document.documentElement.scrollTop = 0;
-      page.current = 1;
-      setLoading(true);
-      
-      getImages(q, page.current).then(res => {
-        if (res === false) {
-          setLoading(false);
-          setAlert(alertMsg);
-          return;
-        }
-        const [images, total_pages] = res;
-        setImages(images);
-        totalPages.current = total_pages;
-      });
+      if (query !== prevQuery && page !== 1) {
+        return;
+      }
 
-      return () => {
-        setAlert("");
-        setImages([]);
-      };
+      getImages(query, page)
+        .then(res => {
+          dispatch({
+            type: ImagesAction.SUCCESS_IMAGES,
+            payload: { ...res, page }
+          });
+        })
+        .catch(() => {
+          dispatch({
+            type: ImagesAction.FAILURE_IMAGES,
+            payload: { alert: alertMsg }
+          });
+        });
     },
-    [q]
+    [prevQuery, query, page, alertMsg]
   );
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const resizeHandler = (target: HTMLElement) => {
-      setContainerWidth(target.clientWidth);
-    };
-    const onResize = debounce(resizeHandler.bind(null, containerRef.current));
-    window.addEventListener("resize", onResize);
-
-    return () => window.removeEventListener("resize", onResize);
-  }, [containerRef]);
+  useAtBottom(imageFlowRef, loadEnoughImages, 200);
 
   return (
     <div ref={containerRef}>
-      {loading && <LoadingMask />}
+      {loading && !alert && <LoadingMask />}
       {alert && (
         <Mask>
           <p className="mask-text text-white letter-spacing-lg">{alert}</p>
@@ -140,7 +197,7 @@ const Homepage = (props: Props) => {
       )}
       {images.length > 0 && (
         <Fragment>
-          <Search defaultValue={q || ""} onSubmit={onSearchSubmit} />
+          <Search defaultValue={query || ""} onSubmit={onSearchSubmit} />
           <ImageFlow
             ref={imageFlowRef}
             images={images}
