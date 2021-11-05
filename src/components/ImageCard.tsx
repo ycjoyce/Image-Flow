@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Photo } from "../models";
 import ImageRenderer from "./ImageRenderer";
 
-interface Props extends Photo {
+export interface Props extends Photo {
   cardWidth: number;
   position?: { left: number | "auto"; top: number | "auto" };
   onClick?: (id: string) => void;

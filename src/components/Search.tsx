@@ -1,9 +1,9 @@
 import { useState, FormEvent, useEffect, memo } from "react";
 
-interface Props {
+type Props = {
   defaultValue?: string;
   onSubmit: (term: string) => void;
-}
+};
 
 const Search = (props: Props) => {
   const { defaultValue, onSubmit } = props;

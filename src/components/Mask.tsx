@@ -1,8 +1,8 @@
 import { memo } from "react";
 
-interface Props {
+type Props = {
   children: any;
-}
+};
 
 const Mask = (props: Props) => {
   return <div className="mask">{props.children}</div>;
