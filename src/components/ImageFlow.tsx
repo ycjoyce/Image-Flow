@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  forwardRef,
-  ForwardedRef,
-  useMemo
-} from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import usePrevious from "../hooks/usePrevious";
 import { Photo } from "../models";
 import PositionedCard from "./PositionedCard";
@@ -19,7 +12,7 @@ type Props = {
   onCardClick?: (id: string) => void;
 };
 
-const ImageFlow = (props: Props, ref: ForwardedRef<HTMLDivElement>) => {
+const ImageFlow = (props: Props) => {
   const {
     containerWidth = document.documentElement.clientWidth,
     cardWidth = 200,
@@ -185,7 +178,6 @@ const ImageFlow = (props: Props, ref: ForwardedRef<HTMLDivElement>) => {
 
   return (
     <div
-      ref={ref}
       className="image-flow"
       style={{
         width: `${cardWidth * itemAmountPerRow +
@@ -198,4 +190,4 @@ const ImageFlow = (props: Props, ref: ForwardedRef<HTMLDivElement>) => {
   );
 };
 
-export default forwardRef(ImageFlow);
+export default ImageFlow;

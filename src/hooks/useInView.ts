@@ -41,9 +41,7 @@ const useInView = (
           observer.unobserve(target);
           callbackMap.delete(target);
         };
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     },
     [callback, el]
   );

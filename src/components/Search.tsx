@@ -1,13 +1,21 @@
 import { useState, FormEvent, useEffect, memo } from "react";
 
 type Props = {
+  className?: string;
   defaultValue?: string;
   onSubmit: (term: string) => void;
 };
 
 const Search = (props: Props) => {
-  const { defaultValue, onSubmit } = props;
+  const { defaultValue, className, onSubmit } = props;
   const [term, setTerm] = useState("");
+
+  const onFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const searchTerm = term.trim();
+    if (!searchTerm) return;
+    onSubmit(searchTerm);
+  };
 
   useEffect(
     () => {
@@ -18,15 +26,11 @@ const Search = (props: Props) => {
     [defaultValue]
   );
 
-  const onFormSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const searchTerm = term.trim();
-    if (!searchTerm) return;
-    onSubmit(searchTerm);
-  };
-
   return (
-    <form className="search-bar d-flex" onSubmit={onFormSubmit}>
+    <form
+      className={`search-bar d-flex ${className || ""}`}
+      onSubmit={onFormSubmit}
+    >
       <input
         type="text"
         value={term}

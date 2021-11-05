@@ -2,7 +2,6 @@ import { useReducer, useEffect, useRef, Fragment } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import useNodeWidth from "../hooks/useNodeWidth";
 import usePrevious from "../hooks/usePrevious";
-import useAtBottom from "../hooks/useAtBottom";
 import { Photo } from "../models";
 import unsplashAPI from "../apis/unsplash";
 import { getRootPath } from "../util";
@@ -10,6 +9,7 @@ import Mask from "./Mask";
 import LoadingMask from "./LoadingMask";
 import Search from "./Search";
 import ImageFlow from "./ImageFlow";
+import useInView from "../hooks/useInView";
 
 type Props = {
   alertMsg?: string;
@@ -106,7 +106,7 @@ const Homepage = (props: Props) => {
   const { alertMsg = "超過限制請求次數(50次/小時)，請下個小時再試" } = props;
   const history = useHistory();
   const [containerWidth, containerRef] = useNodeWidth();
-  const imageFlowRef = useRef(null);
+  const imageFlowBottomRef = useRef<HTMLDivElement>(null);
   const search = useLocation().search;
   const query = new URLSearchParams(search).get("q");
   const prevQuery = usePrevious(query);
@@ -130,22 +130,6 @@ const Homepage = (props: Props) => {
       type: ImagesAction.LOAD_MORE_IMAGES,
       payload: { page: page + 1 }
     });
-  };
-
-  const prevImageFlowHeight = useRef(0);
-
-  const checkHeightEnough = (height: number) => {
-    if (height === prevImageFlowHeight.current) {
-      return;
-    }
-    prevImageFlowHeight.current = height;
-
-    if (height < document.documentElement.clientHeight) {
-      loadEnoughImages();
-      return;
-    }
-
-    dispatch({ type: ImagesAction.IMAGES_LOADED });
   };
 
   const onCardClick = (id: string) => {
@@ -185,10 +169,13 @@ const Homepage = (props: Props) => {
     [prevQuery, query, page, alertMsg]
   );
 
-  useAtBottom(imageFlowRef, loadEnoughImages, 200);
+  useInView(imageFlowBottomRef, loadEnoughImages);
 
   return (
-    <div ref={containerRef}>
+    <div
+      ref={containerRef}
+      className="d-flex flex-direction-column height-viewport"
+    >
       {loading && !alert && <LoadingMask />}
       {alert && (
         <Mask>
@@ -197,15 +184,20 @@ const Homepage = (props: Props) => {
       )}
       {images.length > 0 && (
         <Fragment>
-          <Search defaultValue={query || ""} onSubmit={onSearchSubmit} />
-          <ImageFlow
-            ref={imageFlowRef}
-            images={images}
-            containerWidth={containerWidth}
-            gap={10}
-            getHeight={checkHeightEnough}
-            onCardClick={onCardClick}
+          <Search
+            defaultValue={query || ""}
+            onSubmit={onSearchSubmit}
+            className="flex-shrink-0"
           />
+          <div className="image-flow-container flex-1 scroll-y">
+            <ImageFlow
+              images={images}
+              containerWidth={containerWidth}
+              gap={10}
+              onCardClick={onCardClick}
+            />
+            {!loading && <div ref={imageFlowBottomRef} />}
+          </div>
         </Fragment>
       )}
     </div>

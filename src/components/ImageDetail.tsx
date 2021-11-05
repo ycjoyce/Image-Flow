@@ -1,23 +1,22 @@
-import { Fragment, useEffect, useState, lazy } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useParams, useHistory, Link } from "react-router-dom";
 import useImageDetail from "../hooks/useImageDetail";
 import { getRootPath } from "../util";
 import { Photo, Tag } from "../models";
+import ImageRenderer from "./ImageRenderer";
+import LoadingMask from "./LoadingMask";
+import Mask from "./Mask";
 
-interface Props {
+type Props = {
   alertMsg?: string;
-}
-
-const ImageRenderer = lazy(() => import("./ImageRenderer"));
-const LoadingMask = lazy(() => import("./LoadingMask"));
-const Mask = lazy(() => import("./Mask"));
+};
 
 const ImageDetail = (props: Props) => {
+  const { alertMsg = "超過限制請求次數(50次/小時)，將導回首頁" } = props;
   const history = useHistory();
   const { id } = useParams<{ id: string }>();
-  const { status, data } = useImageDetail(id);
   const [alert, setAlert] = useState<string>("");
-  const { alertMsg = "超過限制請求次數(50次/小時)，將導回首頁" } = props;
+  const { status, data } = useImageDetail(id);
 
   const renderTags = (tags: Tag[]): JSX.Element[] => {
     return tags.map(tag => (
@@ -46,6 +45,7 @@ const ImageDetail = (props: Props) => {
             )}
           </div>
         )}
+
         {tags_preview && (
           <div className="image-tag-list">{renderTags(tags_preview)}</div>
         )}
