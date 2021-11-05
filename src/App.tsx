@@ -10,7 +10,7 @@ const ImageDetail = lazy(() => import("./components/ImageDetail"));
 
 function App() {
   return (
-    <BrowserRouter basename={getRootPath(process.env.NODE_ENV)}>
+    <BrowserRouter basename={`/${getRootPath(process.env.NODE_ENV)}`}>
       <Switch>
         <Route path="/" exact>
           <Suspense fallback={<LoadingMask />}>

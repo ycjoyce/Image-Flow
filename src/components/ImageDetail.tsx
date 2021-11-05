@@ -23,7 +23,7 @@ const ImageDetail = (props: Props) => {
       <Link
         key={tag.title}
         className="image-tag-item"
-        to={`${getRootPath(process.env.NODE_ENV)}?q=${tag.title}`}
+        to={`/${getRootPath(process.env.NODE_ENV)}?q=${tag.title}`}
       >
         {tag.title}
       </Link>

@@ -133,7 +133,11 @@ const Homepage = (props: Props) => {
   };
 
   const onCardClick = (id: string) => {
-    history.push(`${getRootPath(process.env.NODE_ENV)}photo/${id}`);
+    history.push(
+      `/${getRootPath(process.env.NODE_ENV)}${
+        process.env.NODE_ENV === "production" ? "/" : ""
+      }photo/${id}`
+    );
   };
 
   useEffect(
