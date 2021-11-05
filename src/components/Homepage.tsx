@@ -4,7 +4,6 @@ import useNodeWidth from "../hooks/useNodeWidth";
 import usePrevious from "../hooks/usePrevious";
 import { Photo } from "../models";
 import unsplashAPI from "../apis/unsplash";
-import { getRootPath } from "../util";
 import Mask from "./Mask";
 import LoadingMask from "./LoadingMask";
 import Search from "./Search";
@@ -133,11 +132,7 @@ const Homepage = (props: Props) => {
   };
 
   const onCardClick = (id: string) => {
-    history.push(
-      `/${getRootPath(process.env.NODE_ENV)}${
-        process.env.NODE_ENV === "production" ? "/" : ""
-      }photo/${id}`
-    );
+    history.push(`/photo/${id}`);
   };
 
   useEffect(
